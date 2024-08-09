@@ -9,6 +9,6 @@ Trident is a hacking tool for XSS attacks with simple python scripts that make t
 How it works:
 So after specifying your flags, data and script, Trident will run the python script to create the request then it will connect with `net.Dial()` with a timeout (Default 10 seconds) after creating the request it will send it to the target.
 
-Expectations for V 1.0.3:
-    - Response.
+Expectations for V 1.0.3:\n
+    - Response.\n
     - Success?
