@@ -1,5 +1,5 @@
 # Trident-XSS
-A Hacking tool made for cross site scripting. V 1.0.2
+A Hacking tool made for cross site scripting. V 1.0.3
 
 To build just put: go build source.go
 
