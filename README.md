@@ -14,4 +14,7 @@ Expectations for Trident V 1.0.4:<br />
     - DebugX console. <br />
 
 Expectations for TridentAPI V 1.0.2:<br />
-    - Any of your ideas.
+    - Any of your ideas. <br />
+
+Expectations for Trident V 1.2.0:<br />
+    - Updater <br />
