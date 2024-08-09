@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+var extraline strings.Builder
 var lines []string
 var contnt string
 var request string
@@ -34,7 +35,7 @@ func main() {
 	⎢‹—————┘      │
 	\_____________/
 	    Trident
-		v1.0.1
+		v1.0.3
 	`
 	fmt.Println(Blue + welcome + Reset)
 
@@ -47,7 +48,13 @@ func main() {
 	subplace := flag.String("location", "index.php", "Locates where the attack takes place.\n Example: http://127.0.0.1/home/")
 	req := flag.Bool("r", false, "To show request that is used.")
 	timeout := flag.Int("o", 10000, "Set timeout for request package.")
+	//response := flag.Bool("s", false, "Check response from target.")
+	debugMode := flag.Bool("debug", false, "Activate Debug mode.")
 	flag.Parse()
+	if *debugMode {
+		fmt.Println(Yellow, "[!] You've entered Debug Mode.")
+		fmt.Println(Magenta, "[*] ", Reset, "Data.d and request.dat will not be removed.")
+	}
 	datafile, err := os.Create("./data.d")
 	if err != nil {
 		fmt.Println(err)
@@ -102,29 +109,35 @@ POST !
 HTTP/2
 Host: @
 Content-Type: #
-
 `
 		if linenum == 0 {
-			request = strings.ReplaceAll(request, "#", line)
+			contnt = line
+			request = strings.Replace(request, "#", line, 1)
 		} else {
-			request = strings.Join([]string{request, line}, "\n")
+			extraline.WriteString(line)
+			extraline.WriteString("\n")
 		}
 	}
 
-	request = strings.ReplaceAll(request, "!", *subplace)
-	request = strings.ReplaceAll(request, "@", *target)
-	request = strings.ReplaceAll(request, "#", contnt)
+	request = strings.Replace(request, "!", *subplace, 1)
+	request = strings.Replace(request, "@", *target, 1)
+	request = strings.Replace(request, "#", contnt, 1)
+	request += extraline.String()
 	if *req {
 		fmt.Println(Green, "Request:\n", request)
 	}
 
-	cmd = exec.Command("rm", "./data.d")
-	err = cmd.Run()
-	cmd = exec.Command("rm", "./request.dat")
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println(Red+"Error finishing script: "+Reset, err, Yellow+" Did yo run in sudo?"+Reset)
-		return
+	if *debugMode {
+
+	} else {
+		cmd = exec.Command("rm", "./data.d")
+		err = cmd.Run()
+		cmd = exec.Command("rm", "./request.dat")
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(Red+"Error finishing script: "+Reset, err, Yellow+" Did yo run in sudo?"+Reset)
+			return
+		}
 	}
 
 	_, err = conn.Write([]byte(request))
