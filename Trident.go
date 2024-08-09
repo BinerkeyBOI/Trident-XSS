@@ -48,7 +48,7 @@ func main() {
 	subplace := flag.String("location", "index.php", "Locates where the attack takes place.\n Example: http://127.0.0.1/home/")
 	req := flag.Bool("r", false, "To show request that is used.")
 	timeout := flag.Int("o", 10000, "Set timeout for request package.")
-	//response := flag.Bool("s", false, "Check response from target.")
+	response := flag.Bool("s", false, "Check response from target.")
 	debugMode := flag.Bool("debug", false, "Activate Debug mode.")
 	flag.Parse()
 	if *debugMode {
@@ -87,10 +87,10 @@ func main() {
 		err = cmd.Run()
 		if err != nil {
 			fmt.Println(Red+"Error finishing script: "+Reset, err, Yellow+" Did yo run in sudo?"+Reset)
-			return
 		}
-		return
+		os.Exit(2)
 	}
+	defer conn.Close()
 
 	// Encode
 	file, err := os.Open("./request.dat")
@@ -124,7 +124,7 @@ Content-Type: #
 	request = strings.Replace(request, "#", contnt, 1)
 	request += extraline.String()
 	if *req {
-		fmt.Println(Green, "Request:\n", request)
+		fmt.Println(Green, "Request"+Reset+":\n", request)
 	}
 
 	if *debugMode {
@@ -143,5 +143,23 @@ Content-Type: #
 	_, err = conn.Write([]byte(request))
 	if err != nil {
 		fmt.Println(Red+"Error sending package: ", err)
+		os.Exit(3)
+	}
+	if *response {
+		rifer := bufio.NewReader(conn)
+		fmt.Println(Gray + "Response:\n")
+		for {
+			line, err := rifer.ReadString('\n')
+			if err != nil {
+				break
+			}
+			fmt.Println(line)
+		}
+		if err != nil && err.Error() != "EOF" {
+			fmt.Println(Red+"Error reading response: ", err)
+			os.Exit(4)
+		} else {
+			fmt.Println(Red+"[!!] Error reading response due to EOF. (Probably)", Reset)
+		}
 	}
 }
