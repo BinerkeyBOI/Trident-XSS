@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 var lines []string
@@ -44,6 +45,8 @@ func main() {
 	Datafile := flag.String("datafile", "", "Unlike -d --datafile provides a path for a certain file for the script.")
 	script := flag.String("script", "null", "Runs script provided.")
 	subplace := flag.String("location", "index.php", "Locates where the attack takes place.\n Example: http://127.0.0.1/home/")
+	req := flag.Bool("r", false, "To show request that is used.")
+	timeout := flag.Int("o", 10000, "Set timeout for request package.")
 	flag.Parse()
 	datafile, err := os.Create("./data.d")
 	if err != nil {
@@ -68,7 +71,7 @@ func main() {
 	fmt.Println("	" + Cyan + "Location" + Reset + ": " + *subplace)
 
 	// Connect
-	conn, err := net.Dial("tcp", *target+":"+*port)
+	conn, err := net.DialTimeout("tcp", *target+":"+*port, time.Duration(*timeout*1000000))
 	if err != nil {
 		fmt.Println(Red+"[ERROR] Connection error: "+Reset, err)
 		cmd = exec.Command("rm", "./data.d")
@@ -111,7 +114,9 @@ Content-Type: #
 	request = strings.ReplaceAll(request, "!", *subplace)
 	request = strings.ReplaceAll(request, "@", *target)
 	request = strings.ReplaceAll(request, "#", contnt)
-	fmt.Println(Green + "Request:\n" + Reset + request)
+	if *req {
+		fmt.Println(Green, "Request:\n", request)
+	}
 
 	cmd = exec.Command("rm", "./data.d")
 	err = cmd.Run()
@@ -121,8 +126,6 @@ Content-Type: #
 		fmt.Println(Red+"Error finishing script: "+Reset, err, Yellow+" Did yo run in sudo?"+Reset)
 		return
 	}
-
-	fmt.Println(Green, "Request:\n", request)
 
 	_, err = conn.Write([]byte(request))
 	if err != nil {
