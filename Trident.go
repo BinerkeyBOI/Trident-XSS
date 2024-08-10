@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+var letters string
 var extraline strings.Builder
 var lines []string
 var contnt string
@@ -35,14 +36,14 @@ func main() {
 	⎢‹—————┘      │
 	\_____________/
 	    Trident
-		v1.0.3
+		v1.0.4
 	`
 	fmt.Println(Blue + welcome + Reset)
 
 	// Ports & Targets or Flags
 	target := flag.String("t", "localhost", "Define the target to attack.")
 	port := flag.String("p", "8080", "Define the port.")
-	data := flag.String("d", "", "Gives certain data to the script running.")
+	data := flag.String("d", " ", "Gives certain data to the script running.")
 	Datafile := flag.String("datafile", "", "Unlike -d --datafile provides a path for a certain file for the script.")
 	script := flag.String("script", "null", "Runs script provided.")
 	subplace := flag.String("location", "index.php", "Locates where the attack takes place.\n Example: http://127.0.0.1/home/")
@@ -60,7 +61,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	datafile.Write([]byte(*data))
+	datafile.Write([]byte(" " + *data))
 	datafile.WriteString("\n" + *Datafile)
 	datafile.Close()
 
@@ -105,23 +106,28 @@ func main() {
 		linenum += 1
 		line := scanner.Text()
 		request = `
-POST !
-HTTP/2
+POST ! HTTP/1.1
 Host: @
 Content-Type: #
+Content-Length: ^
 `
 		if linenum == 0 {
 			contnt = line
 			request = strings.Replace(request, "#", line, 1)
-		} else {
+		} else if strings.Contains(line, "LENGTH") != true {
 			extraline.WriteString(line)
 			extraline.WriteString("\n")
+		} else {
+			a := strings.Split(line, "=")
+			b := a[1]
+			letters = b
 		}
 	}
 
 	request = strings.Replace(request, "!", *subplace, 1)
 	request = strings.Replace(request, "@", *target, 1)
 	request = strings.Replace(request, "#", contnt, 1)
+	request = strings.Replace(request, "^", letters, 1)
 	request += extraline.String()
 	if *req {
 		fmt.Println(Green, "Request"+Reset+":\n", request)
