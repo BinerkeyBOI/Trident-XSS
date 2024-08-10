@@ -1,10 +1,11 @@
-# Trident 1.0.1 API Linux
+# Trident 1.0.2 API Linux
 import os
 
 data = None
 path = None
 dae = open("./request.dat", "x")
 called = False
+length = 0
 
 def CallData():
     global data, path
@@ -14,19 +15,27 @@ def CallData():
             if lines:
                 data = lines[0].strip()
                 if len(lines) > 1:
-                    path = lines[1].strip()
+                    path = open(lines[1].strip(), "r")
 
 def Segment(name: str, content: any):
+    global length
     if called == True:
         dae.write(f"{name}: {content}\n")
     return 
 
 def ContentType(type: str):
     global called
-    dae.write(f"{type}\n")
+    dae.write(f"{type}\n\n")
     called = True
     return
 
 def Content(content: any):
+    global length
     if called == True:
-        dae.write(f"{content}")
+        dae.write(f"""{content}""")
+        length += content.__len__()
+
+def Exit():
+    global length
+    dae.write("LENGTH="+str(length))
+    dae.close()
